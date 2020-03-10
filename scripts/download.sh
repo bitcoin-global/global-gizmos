@@ -3,7 +3,7 @@
 # Install blockchain
 # ------------------
 cd ~/bitcoin
-./bitcoind -daemon
+./bitcoind
 
 # Check blocks
 # ------------

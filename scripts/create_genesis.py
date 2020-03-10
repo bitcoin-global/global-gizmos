@@ -1,3 +1,4 @@
+#!/env/python
 import hashlib, binascii, struct, array, os, time, sys, optparse
 import scrypt
 

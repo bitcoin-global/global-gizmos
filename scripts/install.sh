@@ -46,7 +46,7 @@ cd bitcoin
 ./autogen.sh
 ./configure
 make
-sudo make install DESTDIR=~/bitcoin-client
+sudo make install
 
 cd ~/downloads
 rm -fr bitcoin

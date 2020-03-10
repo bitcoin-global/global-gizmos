@@ -2,9 +2,8 @@
 
 # Install blockchain
 # ------------------
-cd ~/bitcoin
-./bitcoind
+bitcoind -daemon
 
 # Check blocks
 # ------------
-./bitcoin-cli getblockcount
+bitcoin-cli getblockcount

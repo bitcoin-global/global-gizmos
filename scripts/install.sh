@@ -4,6 +4,8 @@ mkdir ~/downloads
 
 # Update & Upgrade the System
 # ---------------------------
+# sudo apt-get install -y software-properties-common
+# sudo add-apt-repository ppa:bitcoin/bitcoin
 sudo apt-get update
 sudo apt-get upgrade
 
@@ -15,7 +17,7 @@ sudo apt-get install -y libboost-all-dev
 sudo apt-get install -y libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler
 sudo apt-get install -y libqrencode-dev autoconf openssl libssl-dev libevent-dev
 sudo apt-get install -y libminiupnpc-dev
-sudo apt-get install -y libleveldb-dev
+sudo apt-get install -y libleveldb-dev libdb4.8-dev libdb4.8++-dev
 
 # Install Berkley DB 4.8
 # ----------------------

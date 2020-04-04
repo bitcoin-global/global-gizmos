@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # This script generates predefined amount of pub/priv keys
 # using cryptographically secure secp256k1
 import coincurve

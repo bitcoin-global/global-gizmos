@@ -3,3 +3,4 @@ param_consts.cpp
 
 # cache
 *.pyc
+*.vscode

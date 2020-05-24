@@ -16,12 +16,7 @@
 # Supported OS: Linux, Mac OS X, BSD, Windows (Windows Subsystem for Linux)
 # Supported platforms: x86, x86_64, ARM
 #
-# Usage:
-#   Open your terminal and type:
-#
-#     curl https://bitnodes.io/install-full-node.sh | sh
-#
-# Bitcoin Global will be installed using binaries provided by bitcoin.org.
+# Bitcoin Global will be installed using binaries provided by bitcoin-global.io.
 #
 # If the binaries for your system are not available, the installer will attempt
 # to build and install Bitcoin Global from source.
@@ -42,19 +37,24 @@
 #   $HOME/bitcoin-global/.bitglobal/blocks
 #   $HOME/bitcoin-global/.bitglobal/chainstate
 #
-# Need help? Contact ayeowch+bitnodes.io@gmail.com
+# Need help? Contact ramiz.polic@hotmail.com
 #
 ###############################################################################
 
-REPO_URL="https://github.com/bitcoin-global/bitcoin-global.git"
+if [ -z "$GITHUB_TOKEN" ]
+then
+    REPO_URL="https://github.com/bitcoin-global/bitcoin-global.git"
+else
+    REPO_URL="https://$GITHUB_TOKEN@github.com/bitcoin-global/bitcoin-global.git"
+fi
 
-# See https://github.com/bitglobal/bitcoin/tags for latest version.
+# See https://github.com/bitcoin-global/bitcoin-global/tags for latest version.
 VERSION=0.19.1
 
 TARGET_DIR=$HOME/bitcoin-global
 PORT=8222
 
-BUILD=0
+BUILD=1
 UNINSTALL=0
 
 BLUE='\033[94m'
@@ -331,7 +331,7 @@ install_build_dependencies() {
     esac
 }
 
-build_bitcoin_core() {
+build_bitcoin_global() {
     cd $TARGET_DIR
 
     if [ ! -d "$TARGET_DIR/bitglobal" ]; then
@@ -348,13 +348,13 @@ build_bitcoin_core() {
         fi
     fi
 
-    print_info "\nBuilding Bitcoin Global v$VERSION"
+    print_info "\nBuilding Bitcoin Global $VERSION"
     print_info "Build output: $TARGET_DIR/bitglobal/build.out"
     print_info "This can take up to an hour or more.."
     rm -f build.out
     cd bitcoin &&
         git fetch > build.out 2>&1 &&
-        git checkout "v$VERSION" 1>> build.out 2>&1 &&
+        git checkout "$VERSION" 1>> build.out 2>&1 &&
         git clean -f -d -x 1>> build.out 2>&1 &&
         ./autogen.sh 1>> build.out 2>&1 &&
         ./configure \
@@ -382,88 +382,88 @@ build_bitcoin_core() {
     fi
 }
 
-get_bin_url() {
-    url="https://bitcoin.org/bin/bitcoin-global-$VERSION"
-    case "$SYSTEM" in
-        Linux)
-            if program_exists "apk"; then
-                echo ""
-            elif [ "$ARCH" = "armv7l" ]; then
-                url="$url/bitcoin-global-$VERSION-arm-linux-gnueabihf.tar.gz"
-                echo "$url"
-            else
-                url="$url/bitcoin-global-$VERSION-$ARCH-linux-gnu.tar.gz"
-                echo "$url"
-            fi
-            ;;
-        Darwin)
-            url="$url/bitcoin-global-$VERSION-osx64.tar.gz"
-            echo "$url"
-            ;;
-        FreeBSD)
-            echo ""
-            ;;
-        *)
-            echo ""
-            ;;
-    esac
-}
+# get_bin_url() {
+#     url="https://bitcoin.org/bin/bitcoin-global-$VERSION"
+#     case "$SYSTEM" in
+#         Linux)
+#             if program_exists "apk"; then
+#                 echo ""
+#             elif [ "$ARCH" = "armv7l" ]; then
+#                 url="$url/bitcoin-global-$VERSION-arm-linux-gnueabihf.tar.gz"
+#                 echo "$url"
+#             else
+#                 url="$url/bitcoin-global-$VERSION-$ARCH-linux-gnu.tar.gz"
+#                 echo "$url"
+#             fi
+#             ;;
+#         Darwin)
+#             url="$url/bitcoin-global-$VERSION-osx64.tar.gz"
+#             echo "$url"
+#             ;;
+#         FreeBSD)
+#             echo ""
+#             ;;
+#         *)
+#             echo ""
+#             ;;
+#     esac
+# }
 
-download_bin() {
-    checksum_url="https://bitcoin.org/bin/bitcoin-global-$VERSION/SHA256SUMS.asc"
-    signing_key_url="https://bitcoin.org/laanwj-releases.asc"
+# download_bin() {
+#     checksum_url="https://bitcoin.org/bin/bitcoin-global-$VERSION/SHA256SUMS.asc"
+#     signing_key_url="https://bitcoin.org/laanwj-releases.asc"
+# 
+#     cd $TARGET_DIR
+# 
+#     rm -f bitcoin-global-$VERSION.tar.gz checksum.asc signing_key.asc
+# 
+#     print_info "\nDownloading Bitcoin Global binaries.."
+#     if program_exists "wget"; then
+#         wget -q "$1" -O bitcoin-global-$VERSION.tar.gz &&
+#             wget -q "$checksum_url" -O checksum.asc &&
+#             wget -q "$signing_key_url" -O signing_key.asc &&
+#             mkdir -p bitcoin-global-$VERSION &&
+#             tar xzf bitcoin-global-$VERSION.tar.gz -C bitcoin-global-$VERSION --strip-components=1
+#     elif program_exists "curl"; then
+#         curl -s "$1" -o bitcoin-global-$VERSION.tar.gz &&
+#             curl -s "$checksum_url" -o checksum.asc &&
+#             curl -s "$signing_key_url" -o signing_key.asc &&
+#             mkdir -p bitcoin-global-$VERSION &&
+#             tar xzf bitcoin-global-$VERSION.tar.gz -C bitcoin-global-$VERSION --strip-components=1
+#     else
+#         print_error "\nwget or curl program is required to continue. Please install wget or curl as root and rerun this script as normal user."
+#         exit 1
+#     fi
+# 
+#     if program_exists "shasum"; then
+#         checksum=$(shasum -a 256 bitcoin-global-$VERSION.tar.gz | awk '{ print $1 }')
+#         if grep -q "$checksum" checksum.asc; then
+#             print_success "Checksum passed: bitcoin-global-$VERSION.tar.gz ($checksum)"
+#         else
+#             print_error "Checksum failed: bitcoin-global-$VERSION.tar.gz ($checksum). Please rerun this script to download and validate the binaries again."
+#             exit 1
+#         fi
+#     fi
+# 
+#     if program_exists "gpg"; then
+#         gpg --import signing_key.asc 2> /dev/null
+#         gpg --verify checksum.asc 2> /dev/null
+#         retcode=$?
+#         if [ $retcode -eq 0 ]; then
+#             print_success "Signature passed: Signed checksum.asc verified successfully!"
+#         else
+#             print_error "Signature failed: Signed checksum.asc cannot be verified."
+#             exit 1
+#         fi
+#     fi
+# 
+#     rm -f bitcoin-global-$VERSION.tar.gz checksum.asc signing_key.asc
+# }
 
+install_bitcoin_global() {
     cd $TARGET_DIR
 
-    rm -f bitcoin-global-$VERSION.tar.gz checksum.asc signing_key.asc
-
-    print_info "\nDownloading Bitcoin Global binaries.."
-    if program_exists "wget"; then
-        wget -q "$1" -O bitcoin-global-$VERSION.tar.gz &&
-            wget -q "$checksum_url" -O checksum.asc &&
-            wget -q "$signing_key_url" -O signing_key.asc &&
-            mkdir -p bitcoin-global-$VERSION &&
-            tar xzf bitcoin-global-$VERSION.tar.gz -C bitcoin-global-$VERSION --strip-components=1
-    elif program_exists "curl"; then
-        curl -s "$1" -o bitcoin-global-$VERSION.tar.gz &&
-            curl -s "$checksum_url" -o checksum.asc &&
-            curl -s "$signing_key_url" -o signing_key.asc &&
-            mkdir -p bitcoin-global-$VERSION &&
-            tar xzf bitcoin-global-$VERSION.tar.gz -C bitcoin-global-$VERSION --strip-components=1
-    else
-        print_error "\nwget or curl program is required to continue. Please install wget or curl as root and rerun this script as normal user."
-        exit 1
-    fi
-
-    if program_exists "shasum"; then
-        checksum=$(shasum -a 256 bitcoin-global-$VERSION.tar.gz | awk '{ print $1 }')
-        if grep -q "$checksum" checksum.asc; then
-            print_success "Checksum passed: bitcoin-global-$VERSION.tar.gz ($checksum)"
-        else
-            print_error "Checksum failed: bitcoin-global-$VERSION.tar.gz ($checksum). Please rerun this script to download and validate the binaries again."
-            exit 1
-        fi
-    fi
-
-    if program_exists "gpg"; then
-        gpg --import signing_key.asc 2> /dev/null
-        gpg --verify checksum.asc 2> /dev/null
-        retcode=$?
-        if [ $retcode -eq 0 ]; then
-            print_success "Signature passed: Signed checksum.asc verified successfully!"
-        else
-            print_error "Signature failed: Signed checksum.asc cannot be verified."
-            exit 1
-        fi
-    fi
-
-    rm -f bitcoin-global-$VERSION.tar.gz checksum.asc signing_key.asc
-}
-
-install_bitcoin_core() {
-    cd $TARGET_DIR
-
-    print_info "\nInstalling Bitcoin Global v$VERSION"
+    print_info "\nInstalling Bitcoin Global $VERSION"
 
     if [ ! -d "$TARGET_DIR/bin" ]; then
         mkdir -p $TARGET_DIR/bin
@@ -487,13 +487,13 @@ install_bitcoin_core() {
         # Install compiled binaries.
         cp "$TARGET_DIR/bitglobal/src/bitglobd" "$TARGET_DIR/bin/" &&
             cp "$TARGET_DIR/bitglobal/src/bitglob-cli" "$TARGET_DIR/bin/" &&
-            print_success "Bitcoin Global v$VERSION (compiled) installed successfully!"
+            print_success "Bitcoin Global $VERSION (compiled) installed successfully!"
     elif [ -f "$TARGET_DIR/bitcoin-global-$VERSION/bin/bitglobd" ]; then
         # Install downloaded binaries.
         cp "$TARGET_DIR/bitcoin-global-$VERSION/bin/bitglobd" "$TARGET_DIR/bin/" &&
             cp "$TARGET_DIR/bitcoin-global-$VERSION/bin/bitglob-cli" "$TARGET_DIR/bin/" &&
                 rm -rf "$TARGET_DIR/bitcoin-global-$VERSION"
-            print_success "Bitcoin Global v$VERSION (binaries) installed successfully!"
+            print_success "Bitcoin Global $VERSION (binaries) installed successfully!"
     else
         print_error "Cannot find files to install."
         exit 1
@@ -536,7 +536,7 @@ EOF
     chmod ugo+x $TARGET_DIR/bin/stop.sh
 }
 
-start_bitcoin_core() {
+start_bitcoin_global() {
     if [ ! -f $TARGET_DIR/.bitglobal/bitglobd.pid ]; then
         print_info "\nStarting Bitcoin Global.."
         cd $TARGET_DIR/bin && ./start.sh
@@ -556,7 +556,7 @@ start_bitcoin_core() {
     fi
 }
 
-stop_bitcoin_core() {
+stop_bitcoin_global() {
     if [ -f $TARGET_DIR/.bitglobal/bitglobd.pid ]; then
         print_info "\nStopping Bitcoin Global.."
         cd $TARGET_DIR/bin && ./stop.sh
@@ -576,7 +576,7 @@ stop_bitcoin_core() {
     fi
 }
 
-check_bitcoin_core() {
+check_bitcoin_global() {
     if [ -f $TARGET_DIR/.bitglobal/bitglobd.pid ]; then
         if [ -f $TARGET_DIR/bin/bitglob-cli ]; then
             print_info "\nChecking Bitcoin Global.."
@@ -593,8 +593,8 @@ check_bitcoin_core() {
     fi
 }
 
-uninstall_bitcoin_core() {
-    stop_bitcoin_core
+uninstall_bitcoin_global() {
+    stop_bitcoin_global
 
     if [ -d "$TARGET_DIR" ]; then
         print_info "\nUninstalling Bitcoin Global.."
@@ -655,7 +655,7 @@ WELCOME_TEXT=$(cat <<EOF
 
 Welcome!
 
-You are about to install a Bitcoin full node based on Bitcoin Global v$VERSION.
+You are about to install a Bitcoin full node based on Bitcoin Global $VERSION.
 
 All files will be installed under $TARGET_DIR directory.
 
@@ -679,40 +679,29 @@ if [ $UNINSTALL -eq 1 ]; then
     echo
     read -p "WARNING: This will stop Bitcoin Global and uninstall it from your system. Uninstall? (y/n) " answer
     if [ "$answer" = "y" ]; then
-        uninstall_bitcoin_core
+        uninstall_bitcoin_global
     fi
 else
     echo "$WELCOME_TEXT"
-    if [ -t 0 ]; then
-        # Prompt for confirmation when invoked in tty.
-        echo
-        read -p "Install? (y/n) " answer
+    # if [ "$BUILD" -eq 0 ]; then
+    #     bin_url=$(get_bin_url)
+    # else
+    #     bin_url=""
+    # fi
+    bin_url=""
+    stop_bitcoin_global
+    create_target_dir
+    if [ "$bin_url" != "" ]; then
+        download_bin "$bin_url"
     else
-        # Continue installation when invoked via pipe, e.g. curl .. | sh
-        answer="y"
-        echo
-        echo "Starting installation in 10 seconds.."
-        sleep 10
+        install_build_dependencies && build_bitcoin_global
     fi
-    if [ "$answer" = "y" ]; then
-        if [ "$BUILD" -eq 0 ]; then
-            bin_url=$(get_bin_url)
-        else
-            bin_url=""
-        fi
-        stop_bitcoin_core
-        create_target_dir
-        if [ "$bin_url" != "" ]; then
-            download_bin "$bin_url"
-        else
-            install_build_dependencies && build_bitcoin_core
-        fi
-        install_bitcoin_core && start_bitcoin_core && check_bitcoin_core
-        print_readme > $TARGET_DIR/README.md
-        cat $TARGET_DIR/README.md
-        print_success "If this your first install, Bitcoin Global may take several hours to download a full copy of the blockchain."
-        print_success "\nInstallation completed!"
-    fi
+    install_bitcoin_global && start_bitcoin_global
+    # check_bitcoin_global
+    print_readme > $TARGET_DIR/README.md
+    cat $TARGET_DIR/README.md
+    print_success "If this your first install, Bitcoin Global may take several hours to download a full copy of the blockchain."
+    print_success "\nInstallation completed!"
 fi
 
 print_end

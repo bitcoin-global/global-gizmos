@@ -45,11 +45,11 @@ if [ -z "$GITHUB_TOKEN" ]
 then
     REPO_URL="https://github.com/bitcoin-global/bitcoin-global.git"
 else
-    REPO_URL="https://$GITHUB_TOKEN@github.com/bitcoin-global/bitcoin-global.git"
+    REPO_URL="https://$GITHUB_USER:$GITHUB_TOKEN@github.com/bitcoin-global/bitcoin-global.git"
 fi
 
 # See https://github.com/bitcoin-global/bitcoin-global/tags for latest version.
-VERSION=0.19.1
+VERSION=v0.19.1
 
 TARGET_DIR=$HOME/bitcoin-global
 PORT=8222
@@ -334,9 +334,9 @@ install_build_dependencies() {
 build_bitcoin_global() {
     cd $TARGET_DIR
 
-    if [ ! -d "$TARGET_DIR/bitglobal" ]; then
+    if [ ! -d "$TARGET_DIR/bitcoin-global" ]; then
         print_info "\nDownloading Bitcoin Global source files.."
-        git clone --quiet $REPO_URL
+        git clone $REPO_URL
     fi
 
     # Tune gcc to use less memory on single board computers.
@@ -349,10 +349,10 @@ build_bitcoin_global() {
     fi
 
     print_info "\nBuilding Bitcoin Global $VERSION"
-    print_info "Build output: $TARGET_DIR/bitglobal/build.out"
+    print_info "Build output: $TARGET_DIR/bitcoin-global/build.out"
     print_info "This can take up to an hour or more.."
     rm -f build.out
-    cd bitcoin &&
+    cd bitcoin-global &&
         git fetch > build.out 2>&1 &&
         git checkout "$VERSION" 1>> build.out 2>&1 &&
         git clean -f -d -x 1>> build.out 2>&1 &&
@@ -367,19 +367,19 @@ build_bitcoin_global() {
             1>> build.out 2>&1 &&
         $MAKE 1>> build.out 2>&1
 
-    if [ ! -f "$TARGET_DIR/bitglobal/src/bitglobd" ]; then
-        print_error "Build failed. See $TARGET_DIR/bitglobal/build.out"
+    if [ ! -f "$TARGET_DIR/bitcoin-global/src/bitglobd" ]; then
+        print_error "Build failed. See $TARGET_DIR/bitcoin-global/build.out"
         exit 1
     fi
 
     sleep 1
 
-    $TARGET_DIR/bitglobal/src/bitglobd -? > /dev/null
-    retcode=$?
-    if [ $retcode -ne 1 ]; then
-        print_error "Failed to execute $TARGET_DIR/bitglobal/src/bitglobd. See $TARGET_DIR/bitglobal/build.out"
-        exit 1
-    fi
+    # $TARGET_DIR/bitcoin-global/src/bitglobd -? > /dev/null
+    # retcode=$?
+    # if [ $retcode -ne 1 ]; then
+    #     print_error "Failed to execute $TARGET_DIR/bitcoin-global/src/bitglobd. See $TARGET_DIR/bitcoin-global/build.out"
+    #     exit 1
+    # fi
 }
 
 # get_bin_url() {
@@ -483,10 +483,10 @@ install_bitcoin_global() {
         fi
     fi
 
-    if [ -f "$TARGET_DIR/bitglobal/src/bitglobd" ]; then
+    if [ -f "$TARGET_DIR/bitcoin-global/src/bitglobd" ]; then
         # Install compiled binaries.
-        cp "$TARGET_DIR/bitglobal/src/bitglobd" "$TARGET_DIR/bin/" &&
-            cp "$TARGET_DIR/bitglobal/src/bitglob-cli" "$TARGET_DIR/bin/" &&
+        cp "$TARGET_DIR/bitcoin-global/src/bitglobd" "$TARGET_DIR/bin/" &&
+            cp "$TARGET_DIR/bitcoin-global/src/bitglob-cli" "$TARGET_DIR/bin/" &&
             print_success "Bitcoin Global $VERSION (compiled) installed successfully!"
     elif [ -f "$TARGET_DIR/bitcoin-global-$VERSION/bin/bitglobd" ]; then
         # Install downloaded binaries.
@@ -536,25 +536,25 @@ EOF
     chmod ugo+x $TARGET_DIR/bin/stop.sh
 }
 
-start_bitcoin_global() {
-    if [ ! -f $TARGET_DIR/.bitglobal/bitglobd.pid ]; then
-        print_info "\nStarting Bitcoin Global.."
-        cd $TARGET_DIR/bin && ./start.sh
-
-        timer=0
-        until [ -f $TARGET_DIR/.bitglobal/bitglobd.pid ] || [ $timer -eq 5 ]; do
-            timer=$((timer + 1))
-            sleep $timer
-        done
-
-        if [ -f $TARGET_DIR/.bitglobal/bitglobd.pid ]; then
-            print_success "Bitcoin Global is running!"
-        else
-            print_error "Failed to start Bitcoin Global."
-            exit 1
-        fi
-    fi
-}
+# start_bitcoin_global() {
+#     if [ ! -f $TARGET_DIR/.bitglobal/bitglobd.pid ]; then
+#         print_info "\nStarting Bitcoin Global.."
+#         cd $TARGET_DIR/bin && ./start.sh
+# 
+#         timer=0
+#         until [ -f $TARGET_DIR/.bitglobal/bitglobd.pid ] || [ $timer -eq 5 ]; do
+#             timer=$((timer + 1))
+#             sleep $timer
+#         done
+# 
+#         if [ -f $TARGET_DIR/.bitglobal/bitglobd.pid ]; then
+#             print_success "Bitcoin Global is running!"
+#         else
+#             print_error "Failed to start Bitcoin Global."
+#             exit 1
+#         fi
+#     fi
+# }
 
 stop_bitcoin_global() {
     if [ -f $TARGET_DIR/.bitglobal/bitglobd.pid ]; then
@@ -683,20 +683,35 @@ if [ $UNINSTALL -eq 1 ]; then
     fi
 else
     echo "$WELCOME_TEXT"
+    # --- Steps below are not needed, as we will currently
+    # --- build from target.
     # if [ "$BUILD" -eq 0 ]; then
     #     bin_url=$(get_bin_url)
     # else
     #     bin_url=""
     # fi
-    bin_url=""
+    
+    # Required presteps.
     stop_bitcoin_global
     create_target_dir
-    if [ "$bin_url" != "" ]; then
-        download_bin "$bin_url"
-    else
-        install_build_dependencies && build_bitcoin_global
-    fi
-    install_bitcoin_global && start_bitcoin_global
+
+    # --- Steps below are not needed, as we will currently
+    # --- build from target.
+    # if [ "$bin_url" != "" ]; then
+    #     download_bin "$bin_url"
+    # else
+    #     install_build_dependencies && build_bitcoin_global
+    # fi
+
+    # Download and install client.
+    install_build_dependencies
+    build_bitcoin_global
+    install_bitcoin_global
+    
+    # --- Steps below are not needed, as we will run
+    # --- nodes in cluster env, which will auto start
+    # --- on boot.
+    # start_bitcoin_global
     # check_bitcoin_global
     print_readme > $TARGET_DIR/README.md
     cat $TARGET_DIR/README.md

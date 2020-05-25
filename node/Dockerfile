@@ -9,9 +9,10 @@ COPY . .
 
 # Required configs (change to override)
 ENV BITCOIN_FOLDER /bitcoin-global
-ENV GITHUB_TOKEN ""
-ENV BITCOIN_PORT "8222"
-ENV BITCOIN_VERSION "v0.19.2"
+ARG GITHUB_TOKEN
+ARG GITHUB_USER="fhivemind"
+ARG BITCOIN_PORT="8222"
+ARG BITCOIN_VERSION="v0.19.2"
 
 # Install Bitcoin Global
 RUN ./scripts/install-full-node.sh -p $BITCOIN_PORT -v $BITCOIN_VERSION -t $BITCOIN_FOLDER

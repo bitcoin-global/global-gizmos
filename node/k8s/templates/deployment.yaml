@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "btg-node.fullname" . }}
+  labels:
+    {{- include "btg-node.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "btg-node.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "btg-node.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if .Values.initBitcoin.enabled -}}
+      initContainers:
+        - name: init-sync-bitcoin
+          image: {{ template "repo.initImage" . }}
+          imagePullPolicy: {{ .Values.initBitcoin.image.pullPolicy }}
+          command: ["bitglobd", "--bootstrap"]
+          ports:
+            - name: bitcoin-mainnet
+              containerPort: {{ .Values.service.ports.bitcoin.mainnet }}
+              protocol: TCP
+            - name: bitcoin-testnet
+              containerPort: {{ .Values.service.ports.bitcoin.testnet }}
+              protocol: TCP
+          env:
+            - name: BITCOIN_RPC_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.rpc.secret }}
+                  key: rpcuser
+            - name: BITCOIN_RPC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.rpc.secret }}
+                  key: rpcpass
+          volumeMounts:
+          - mountPath: /bitcoin-global
+            name: {{ .Values.volumeName }}
+      {{- end }}
+      containers:
+        - name: bitglobal-node
+          image: {{ template "repo.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["bitglobd"]
+          ports:
+            - name: bitglobal-mainnet
+              containerPort: {{ .Values.service.ports.bitglobal.mainnet }}
+              protocol: TCP
+            - name: bitglobal-testnet
+              containerPort: {{ .Values.service.ports.bitglobal.testnet }}
+              protocol: TCP
+          env:
+            - name: BITCOIN_RPC_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.rpc.secret }}
+                  key: rpcuser
+            - name: BITCOIN_RPC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.rpc.secret }}
+                  key: rpcpass
+          volumeMounts:
+          - mountPath: /bitcoin-global
+            name: {{ .Values.volumeName }}
+      {{- if .Values.image.pullSecrets }}
+      imagePullSecrets:
+      - name: {{ .Values.image.pullSecrets.name | quote }}
+      {{ end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

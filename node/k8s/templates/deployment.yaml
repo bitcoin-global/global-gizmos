@@ -9,6 +9,7 @@ spec:
   selector:
     matchLabels:
       {{- include "btg-node.selectorLabels" . | nindent 6 }}
+  serviceName: {{ include "btg-node.fullname" . }}
   template:
     metadata:
       labels:

@@ -20,7 +20,7 @@ image:
 
 # Container command
 command:
-- bitglobd 
+- bitglobd
 - -testnet
 - -bootstrap
 

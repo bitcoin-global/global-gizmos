@@ -41,7 +41,7 @@ volumes:
 service:
   type: LoadBalancer
   externalTrafficPolicy: Local
-  ports: pull-secrets
+  ports:
     bitglobal:
       mainnet: 8222
       testnet: 18222

@@ -20,7 +20,7 @@ ARG BITCOIN_VERSION="v0.19.2"
 
 # Install Bitcoin Global
 RUN ./scripts/install-full-node.sh -v $BITCOIN_VERSION -d /bitcoin-global -t /opt
-ENV PATH=/opt/bitcoin-global/src:$PATH
+ENV PATH="/opt/bitcoin-global/src:${PATH}"
 
 # Expose
 ENV BITGLOB_DATA=/bitcoin-global

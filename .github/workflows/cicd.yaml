@@ -44,7 +44,7 @@ jobs:
       uses: mr-smithers-excellent/docker-build-push@v3.3
       with:
         image     : ${{ env.GCP_PROJECT }}/${{ env.ARTIFACT_NAME }}
-        dockerfile: ./node/Dockerfile
+        directory : ./node
         tag       : ${{ env.BITCOIN_TAG }}
         buildArgs : GITHUB_USER=${{ env.GIT_USERNAME }},BITCOIN_VERSION=${{ env.BITCOIN_TAG }},GITHUB_TOKEN=${{ secrets.GIT_AUTH_TOKEN }}
         registry  : eu.gcr.io

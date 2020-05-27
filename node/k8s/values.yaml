@@ -12,7 +12,7 @@ replicaCount: 1
 # Bitcoin Global configs
 image:
   registry: eu.gcr.io
-  repository: bitcoin-global/bitcoin-global
+  repository: bitcoin-global-playground/btg-node
   tag: v0.19.1
   pullPolicy: IfNotPresent
   pullSecrets: 

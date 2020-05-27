@@ -13,16 +13,16 @@ replicaCount: 1
 image:
   registry: eu.gcr.io
   repository: bitcoin-global-playground/btg-node
-  tag: v0.19.1
+  tag: bootstrap
   pullPolicy: IfNotPresent
   pullSecrets: 
     name: docker-pull-secrets
 
 # Container command
-daemonCommand: 
-  - "bitglobd"
-  - "-bootstrap"
-  - "-testnet"
+command:
+- bitglobd 
+- -testnet
+- -bootstrap
 
 # User data
 rpc:

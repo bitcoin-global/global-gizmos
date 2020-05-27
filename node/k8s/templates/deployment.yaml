@@ -19,10 +19,10 @@ spec:
         - name: bitglobal-node
           image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- with .Values.daemonCommand }}
           command:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
+          {{  range .Values.command }}
+            - {{ . }}
+          {{ end }}
           ports:
             - name: btg-mainnet
               containerPort: {{ .Values.service.ports.bitglobal.mainnet }}

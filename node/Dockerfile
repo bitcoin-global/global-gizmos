@@ -23,5 +23,4 @@ EXPOSE 8333 8332 8222 18332 18222 18333
 WORKDIR $BITCOIN_FOLDER
 
 # Runnable
-ENTRYPOINT ["/installation/docker-entrypoint.sh"]
 CMD ["bitglobd"]

@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: bitglobal-node
-          image: {{ template "repo.image" . }}
+          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           {{- with .Values.daemonCommand }}
           command:

@@ -11,10 +11,10 @@ replicaCount: 1
 
 # Bitcoin Global configs
 image:
-  registry   : eu.gcr.io
-  repository : bitcoin-global/bitcoin-global
-  tag        : v0.19.1
-  pullPolicy : IfNotPresent
+  registry: eu.gcr.io
+  repository: bitcoin-global/bitcoin-global
+  tag: v0.19.1
+  pullPolicy: IfNotPresent
   pullSecrets: 
     name: docker-pull-secrets
 
@@ -27,7 +27,7 @@ daemonCommand:
 # User data
 rpc:
   secret: rpc-data
-  user  : username
+  user: username
 
 # ========= Data configuration
 volumeName: bitcoin-global-data

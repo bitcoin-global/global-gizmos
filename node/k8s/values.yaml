@@ -9,17 +9,6 @@ fullnameOverride: ""
 # =========  Deployment configuration
 replicaCount: 1
 
-# For initializing IBD data from original Bitcoin
-initBitcoin:
-  enabled: true
-  image:
-    registry   : eu.gcr.io
-    repository : bitcoin-global/bitcoin-global
-    tag        : bootstrap
-    pullPolicy : IfNotPresent
-    pullSecrets: 
-      name: 
-
 # Bitcoin Global configs
 image:
   registry   : eu.gcr.io
@@ -27,12 +16,18 @@ image:
   tag        : v0.19.1
   pullPolicy : IfNotPresent
   pullSecrets: 
-    name: 
+    name: docker-pull-secrets
 
+# Container command
+daemonCommand: 
+  - bitglobd
+  - --bootstrap
+  - --testnet
+
+# User data
 rpc:
   secret: rpc-data
-  user  : 
-  pass  : 
+  user  : username
 
 # ========= Data configuration
 volumeName: bitcoin-global-data
@@ -46,13 +41,13 @@ volumes:
 service:
   type: LoadBalancer
   externalTrafficPolicy: Local
-  ports:
+  ports: pull-secrets
     bitglobal:
       mainnet: 8222
       testnet: 18222
     bitcoin:
-      bitcoin_mainnet: 8333
-      bitcoin_testnet: 18333
+      mainnet: 8333
+      testnet: 18333
 
 ingress:
   enabled: false

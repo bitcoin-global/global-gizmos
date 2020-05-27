@@ -10,23 +10,21 @@ spec:
   externalTrafficPolicy: {{ .Values.service.externalTrafficPolicy }}
   {{ end }}
   ports:
-    {{- if .Values.initBitcoin.enabled -}}
-    - port: {{ .Values.service.ports.bitcoin.mainnet }}
-      targetPort: bitcoin-mainnet
-      protocol: TCP
-      name: bitcoin-mainnet
-    - port: {{ .Values.service.ports.bitcoin.testnet }}
-      targetPort: bitcoin-testnet
-      protocol: TCP
-      name: bitcoin-testnet
-    {{- end }}
     - port: {{ .Values.service.ports.bitglobal.mainnet }}
-      targetPort: bitglobal-mainnet
+      targetPort: btg-mainnet
       protocol: TCP
-      name: bitglobal-mainnet
+      name: btg-mainnet
     - port: {{ .Values.service.ports.bitglobal.testnet }}
-      targetPort: bitglobal-testnet
+      targetPort: btg-testnet
       protocol: TCP
-      name: bitglobal-testnet
+      name: btg-testnet
+    - port: {{ .Values.service.ports.bitcoin.mainnet }}
+      targetPort: btc-testnet
+      protocol: TCP
+      name: btc-testnet
+    - port: {{ .Values.service.ports.bitcoin.testnet }}
+      targetPort: btc-testnet
+      protocol: TCP
+      name: btc-testnet
   selector:
     {{- include "btg-node.selectorLabels" . | nindent 4 }}

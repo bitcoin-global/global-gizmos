@@ -502,7 +502,6 @@ install_bitcoin_global() {
     cat > $TARGET_DIR/.bitglobal/bitcoin.conf <<EOF
 listen=1
 bind=0.0.0.0
-port=$PORT
 maxconnections=64
 upnp=1
 

@@ -1,0 +1,102 @@
+name: CI/CD Pipeline
+on:
+  # Run every Sunday at 2:30 AM
+  # Run on starred
+  # Run on pushed version
+  push:
+    tags:
+    - '*'
+  watch:
+    types: [started]
+
+# ========================================================
+env:
+  # Project shared
+  GCP_PROJECT   : bitcoin-global-playground
+  BITCOIN_TAG   : bootstrap
+  GIT_USERNAME  : fhivemind
+  ARTIFACT_NAME : btg-node
+  HELM_APP      : btg-node
+  HELM_NAMESPACE: default
+  GKE_CLUSTER   : eu-west2-bitcoin-global
+  GKE_ZONE      : europe-west2-a
+
+  # Consts
+  CHART_PATH: "./node/k8s"
+  KUBECONFIG: ./kube/config
+
+  #### Also required:
+  # GOOGLE_SA_EMAIL
+  # GOOGLE_SA_KEY
+  # GIT_AUTH_TOKEN
+
+jobs:
+  # ========================================================
+  # ============= CI WORKFLOW
+  # ========================================================
+  ci:
+    name: 'Build artifacts'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+  
+    - name: Push to Registry [bootstrap]
+      uses: mr-smithers-excellent/docker-build-push@v3.3
+      with:
+        image     : ${{ env.GCP_PROJECT }}/${{ env.ARTIFACT_NAME }}
+        dockerfile: ./node/Dockerfile
+        tag       : ${{ env.BITCOIN_TAG }}
+        buildArgs : GITHUB_USER=${{ env.GIT_USERNAME }},BITCOIN_VERSION=${{ env.BITCOIN_TAG }},GITHUB_TOKEN=${{ secrets.GIT_AUTH_TOKEN }}
+        registry  : eu.gcr.io
+        username  : _json_key
+        password  : ${{ secrets.DOCKER_PASSWORD }}
+
+  # ========================================================
+  # ============= CD WORKFLOW
+  # ========================================================
+  cd:
+    name: 'Deploy artifacts'
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: CD - Set version
+      run: |
+        echo ::set-env name=RELEASE_VERSION::${{ env.BITCOIN_TAG }}
+        echo $RELEASE_VERSION
+    # Setup gcloud CLI
+    - name: CD - GCP Auth
+      uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      with:
+        version: '286.0.0'
+        service_account_email: ${{ secrets.GOOGLE_SA_EMAIL }}
+        service_account_key: ${{ secrets.GOOGLE_SA_KEY }}
+        project_id: ${{ env.GCP_PROJECT }}
+    # Get GKE credentials
+    - name: CD - GKE Auth
+      run: |-
+        gcloud container clusters get-credentials "$GKE_CLUSTER" --zone "$GKE_ZONE"
+    - name: Helm - Install dependencies
+      run: |
+        pip3 install --upgrade setuptools pip
+        pip3 install -r ./.cicd/requirements.txt
+    # Update chart
+    - name: Helm - Update chart
+      run: |
+        python3 ./.cicd/update_chart.py
+        cat ./node/k8s/values.yaml
+    # Lint chart
+    - name: Helm - Lint
+      run: |
+        helm lint ./node/k8s/
+    # Upload artifact
+    - uses: actions/upload-artifact@v1
+      name: Helm - Upload artifact
+      with:
+        name: ${{ env.HELM_APP }}-${{ env.RELEASE_VERSION }}
+        path: ./node/k8s/
+    # Deploy chart
+    - name: Helm - Deploy chart
+      run: |
+        helm upgrade $HELM_APP $CHART_PATH/ --install --wait --timeout 15m0s --atomic --namespace=$HELM_NAMESPACE --values=$CHART_PATH/values.yaml

@@ -365,7 +365,8 @@ build_bitcoin_global() {
             --disable-tests \
             --enable-upnp-default \
             1>> build.out 2>&1 &&
-        $MAKE 1>> build.out 2>&1
+        $MAKE 1>> build.out 2>&1 &&
+        $SUDO $MAKE install 1>> build.out 2>&1
 
     if [ ! -f "$TARGET_DIR/bitcoin-global/src/bitglobd" ]; then
         print_error "Build failed. See $TARGET_DIR/bitcoin-global/build.out"

@@ -20,9 +20,9 @@ image:
 
 # Container command
 daemonCommand: 
-  - bitglobd
-  - --bootstrap
-  - --testnet
+  - "bitglobd"
+  - "-bootstrap"
+  - "-testnet"
 
 # User data
 rpc:

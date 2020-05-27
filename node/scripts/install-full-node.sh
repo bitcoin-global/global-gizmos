@@ -52,6 +52,7 @@ fi
 VERSION=v0.19.1
 
 TARGET_DIR=$HOME/bitcoin-global
+DATA_DIR=$HOME/.bitglobal
 PORT=8222
 
 BUILD=1
@@ -88,6 +89,10 @@ Usage: $0 [-h] [-v <version>] [-t <target_directory>] [-p <port>] [-b] [-u]
 -t <target_directory>
     Target directory for source files and binaries.
     Default: $HOME/bitcoin-global
+
+-d <data_dir>
+    Data directory for blockchain.
+    Default: $HOME/bitglobal
 
 -p <port>
     Bitcoin Global listening port.
@@ -168,6 +173,14 @@ create_target_dir() {
         mkdir -p $TARGET_DIR
     fi
 }
+
+create_data_dir() {
+    if [ ! -d "$DATA_DIR" ]; then
+        print_info "\nCreating target directory: $DATA_DIR"
+        mkdir -p $DATA_DIR
+    fi
+}
+
 
 init_system_install() {
     if [ $(id -u) -ne 0 ]; then
@@ -512,6 +525,7 @@ checkblocks=24
 checklevel=0
 
 disablewallet=1
+datadir=$DATA_DIR
 
 rpcbind=127.0.0.1
 rpcport=8332
@@ -622,7 +636,7 @@ uninstall_bitcoin_global() {
     fi
 }
 
-while getopts ":v:t:p:bu" opt
+while getopts ":v:t:d:p:bu" opt
 do
     case "$opt" in
         v)
@@ -630,6 +644,9 @@ do
             ;;
         t)
             TARGET_DIR=${OPTARG}
+            ;;
+        d)
+            DATA_DIR=${OPTARG}
             ;;
         p)
             PORT=${OPTARG}
@@ -694,6 +711,7 @@ else
     # Required presteps.
     stop_bitcoin_global
     create_target_dir
+    create_data_dir
 
     # --- Steps below are not needed, as we will currently
     # --- build from target.

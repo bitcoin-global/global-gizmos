@@ -58,11 +58,4 @@ Return the proper image name
 {{- $registryName := .Values.image.registry -}}
 {{- $repositoryName := .Values.image.repository -}}
 {{- $tag := .Values.image.tag | toString -}}
-
-{{/*
-Return the proper init image name
-*/}}
-{{- define "repo.initImage" -}}
-{{- $registryName := .Values.initBitcoin.image.registry -}}
-{{- $repositoryName := .Values.initBitcoin.image.repository -}}
-{{- $tag := .Values.initBitcoin.image.tag | toString -}}
+{{- end -}}

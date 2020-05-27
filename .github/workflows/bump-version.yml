@@ -1,0 +1,26 @@
+name: Tag
+on:
+  # ==========================================================
+  # Activate on push
+  push:
+    branches:
+      - master
+    paths-ignore:
+    - '*.md'
+jobs:
+  # ==========================================================
+  # TODO: Reformat logic to use custom tagging based on params
+  # such as nums of lines changed, etc...
+  bump:
+    name: 'Bump new version'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+      with:
+        fetch-depth: '0'
+
+    - name: Bump and push tag
+      uses: anothrNick/github-tag-action@1.17.2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GIT_AUTH_TOKEN }}
+        WITH_V: true

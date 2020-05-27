@@ -62,9 +62,17 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+    # Versioning configuration
+    - name: CD - Get version
+      uses: anothrNick/github-tag-action@1.17.2
+      id: tagName
+      env:
+        GITHUB_TOKEN: ${{ secrets.GIT_AUTH_TOKEN }}
+        WITH_V      : true
+        DRY_RUN     : true
     - name: CD - Set version
       run: |
-        echo ::set-env name=RELEASE_VERSION::${{ env.BITCOIN_TAG }}
+        echo ::set-env name=RELEASE_VERSION::${{ steps.tagName.outputs.tag }}
         echo $RELEASE_VERSION
     # Setup gcloud CLI
     - name: CD - GCP Auth

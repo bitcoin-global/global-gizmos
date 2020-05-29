@@ -31,7 +31,7 @@
 #   $HOME/bitcoin-global/bin/
 #
 # Configuration file:
-#   $HOME/bitcoin-global/.bitglobal/bitcoin.conf
+#   $HOME/bitcoin-global/.bitglobal/bitglob.conf
 #
 # Blockchain data files:
 #   $HOME/bitcoin-global/.bitglobal/blocks
@@ -149,7 +149,7 @@ To start Bitcoin Global again:
 
 To use bitglob-cli program:
 
-    cd $TARGET_DIR/bin && ./bitglob-cli -conf=$TARGET_DIR/.bitglobal/bitcoin.conf getnetworkinfo
+    cd $TARGET_DIR/bin && ./bitglob-cli -conf=$TARGET_DIR/.bitglobal/bitglob.conf getnetworkinfo
 
 To view Bitcoin Global log file:
 
@@ -397,7 +397,7 @@ build_bitcoin_global() {
 }
 
 # get_bin_url() {
-#     url="https://bitcoin.org/bin/bitcoin-global-$VERSION"
+#     url="https://bitcoin-global.io/bin/bitcoin-global-$VERSION"
 #     case "$SYSTEM" in
 #         Linux)
 #             if program_exists "apk"; then
@@ -424,8 +424,8 @@ build_bitcoin_global() {
 # }
 
 # download_bin() {
-#     checksum_url="https://bitcoin.org/bin/bitcoin-global-$VERSION/SHA256SUMS.asc"
-#     signing_key_url="https://bitcoin.org/laanwj-releases.asc"
+#     checksum_url="https://bitcoin-global.io/bin/bitcoin-global-$VERSION/SHA256SUMS.asc"
+#     signing_key_url="https://bitcoin-global.io/laanwj-releases.asc"
 # 
 #     cd $TARGET_DIR
 # 
@@ -513,7 +513,7 @@ install_bitcoin_global() {
         exit 1
     fi
 
-    cat > $TARGET_DIR/.bitglobal/bitcoin.conf <<EOF
+    cat > $TARGET_DIR/.bitglobal/bitglob.conf <<EOF
 listen=1
 bind=0.0.0.0
 maxconnections=64
@@ -531,12 +531,12 @@ rpcbind=127.0.0.1
 rpcport=8332
 rpcallowip=127.0.0.1
 EOF
-    chmod go-rw $TARGET_DIR/.bitglobal/bitcoin.conf
+    chmod go-rw $TARGET_DIR/.bitglobal/bitglob.conf
 
     cat > $TARGET_DIR/bin/start.sh <<EOF
 #!/bin/sh
 if [ -f $TARGET_DIR/bin/bitglobd ]; then
-    $TARGET_DIR/bin/bitglobd -conf=$TARGET_DIR/.bitglobal/bitcoin.conf -datadir=$TARGET_DIR/.bitglobal -daemon
+    $TARGET_DIR/bin/bitglobd -conf=$TARGET_DIR/.bitglobal/bitglob.conf -datadir=$TARGET_DIR/.bitglobal -daemon
 fi
 EOF
     chmod ugo+x $TARGET_DIR/bin/start.sh
@@ -595,14 +595,14 @@ check_bitcoin_global() {
         if [ -f $TARGET_DIR/bin/bitglob-cli ]; then
             print_info "\nChecking Bitcoin Global.."
             sleep 5
-            $TARGET_DIR/bin/bitglob-cli -conf=$TARGET_DIR/.bitglobal/bitcoin.conf -datadir=$TARGET_DIR/.bitglobal getnetworkinfo
+            $TARGET_DIR/bin/bitglob-cli -conf=$TARGET_DIR/.bitglobal/bitglob.conf -datadir=$TARGET_DIR/.bitglobal getnetworkinfo
         fi
 
         reachable=$(curl -I https://bitnodes.io/api/v1/nodes/me-$PORT/ 2> /dev/null | head -n 1 | cut -d ' ' -f2)
         if [ $reachable -eq 200 ]; then
             print_success "Bitcoin Global is accepting incoming connections at port $PORT!"
         else
-            print_warning "Bitcoin Global is not accepting incoming connections at port $PORT. You may need to configure port forwarding (https://bitcoin.org/en/full-node#port-forwarding) on your router."
+            print_warning "Bitcoin Global is not accepting incoming connections at port $PORT. You may need to configure port forwarding (https://bitcoin-global.io/full-node#port-forwarding) on your router."
         fi
     fi
 }

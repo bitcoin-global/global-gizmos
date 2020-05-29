@@ -14,7 +14,7 @@ image:
   registry: eu.gcr.io
   repository: bitcoin-global-playground/btg-node
   tag: bootstrap
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   pullSecrets: 
     name: docker-pull-secrets
 

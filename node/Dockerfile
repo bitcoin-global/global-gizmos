@@ -6,7 +6,7 @@ RUN groupadd -r bitglob && useradd -r -m -g bitglob bitglob
 # Add packages
 RUN set -ex \
 	&& apt-get update \
-	&& apt-get install -qq --no-install-recommends ca-certificates dirmngr gosu gpg wget \
+	&& apt-get install -qq --no-install-recommends ca-certificates dirmngr gosu dnsutils gpg wget \
 	&& rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt

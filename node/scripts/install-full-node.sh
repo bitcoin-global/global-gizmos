@@ -527,25 +527,25 @@ checklevel=0
 disablewallet=1
 datadir=$DATA_DIR
 
-rpcallowip=0.0.0.0/0
+rpcallowip=127.0.0.1
 
 # Options only for mainnet
 [main]
 bind=0.0.0.0
-rpcbind=0.0.0.0
+rpcbind=127.0.0.1
 rpcport=8332
 
 # Options only for testnet
 [test]
 bind=0.0.0.0
-rpcbind=0.0.0.0
-rpcport=18332
+rpcbind=127.0.0.1
+rpcport=8332
 
 # Options only for regtest
 [regtest]
 bind=0.0.0.0
-rpcbind=0.0.0.0
-rpcport=18444
+rpcbind=127.0.0.1
+rpcport=8332
 EOF
     chmod go-rw $TARGET_DIR/.bitglobal/bitglob.conf
 

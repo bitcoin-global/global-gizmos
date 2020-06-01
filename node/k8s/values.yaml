@@ -23,8 +23,6 @@ command:
 - bitglobd
 - -testnet
 - -bootstrap
-- -debug
-- -printtoconsole
 
 # User data
 rpc:

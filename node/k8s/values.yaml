@@ -16,18 +16,11 @@ image:
   tag: 
   pullPolicy: Always
   pullSecrets: 
-    name: docker-pull-secrets
+    name: 
 
 # Container command
 command:
 - bitglobd
-- -testnet
-- -bootstrap
-
-# User data
-rpc:
-  secret: rpc-data
-  user: username
 
 # ========= Services configuration
 service:

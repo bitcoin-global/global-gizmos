@@ -42,12 +42,12 @@ spec:
             - name: BITCOIN_RPC_USER
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.rpc.secret }}
+                  name: {{ include "btg-node.fullname" . }}-rpcsecret
                   key: rpcuser
             - name: BITCOIN_RPC_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.rpc.secret }}
+                  name: {{ include "btg-node.fullname" . }}-rpcsecret
                   key: rpcpass
           volumeMounts:
           - mountPath: /bitcoin-global

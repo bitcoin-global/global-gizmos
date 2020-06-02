@@ -17,16 +17,13 @@ env:
   GKE_CLUSTER         : eu-west3-bitcoin-global
   GKE_ZONE            : europe-west3-a
   REGISTRY_PULL_SECRET: docker-pull-secrets
+  BLOCKCHAIN_NETWORK  : testnet
 
   # Credentials
-  GIT_USERNAME  : fhivemind
+  GIT_USERNAME: fhivemind
   # GIT_AUTH_TOKEN
   # GOOGLE_SA_EMAIL
   # GOOGLE_SA_KEY
-
-  # === BUILD MATRIX
-  BITCOIN_TAG: bootstrap
-
 
   # Consts
   CHART_PATH: "./node/k8s"
@@ -39,17 +36,21 @@ jobs:
   ci:
     name: 'Build artifacts'
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        bitcoin-version: ["master", "bootstrap"]
+
     steps:
     - uses: actions/checkout@master
   
-    - name: Push to Registry [bootstrap]
+    - name: Build artifacts [${{ matrix.bitcoin-version }}]
       uses: mr-smithers-excellent/docker-build-push@v3.3
       with:
         image     : ${{ env.GCP_PROJECT }}/${{ env.ARTIFACT_NAME }}
         directory : ./node
         dockerfile: ./node/Dockerfile
-        tag       : ${{ env.BITCOIN_TAG }}
-        buildArgs : GITHUB_USER=${{ env.GIT_USERNAME }},BITCOIN_VERSION=${{ env.BITCOIN_TAG }},GITHUB_TOKEN=${{ secrets.GIT_AUTH_TOKEN }}
+        tag       : ${{ matrix.bitcoin-version }}
+        buildArgs : GITHUB_USER=${{ env.GIT_USERNAME }},BITCOIN_VERSION=${{ matrix.bitcoin-version }},GITHUB_TOKEN=${{ secrets.GIT_AUTH_TOKEN }}
         registry  : ${{ env.GCP_REGISTRY }}
         username  : _json_key
         password  : ${{ secrets.DOCKER_PASSWORD }}
@@ -58,12 +59,17 @@ jobs:
   # ============= CD WORKFLOW
   # ========================================================
   cd:
-    name: 'Deploy artifacts'
+    name: Deploy artifacts [${{ matrix.bitcoin-version }}]
     needs: ci
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        bitcoin-version: ["master", "bootstrap"]
+
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+
     # Versioning configuration
     - name: CD - Get version
       uses: anothrNick/github-tag-action@1.17.2
@@ -72,10 +78,12 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GIT_AUTH_TOKEN }}
         WITH_V      : true
         DRY_RUN     : true
+
     - name: CD - Set version
       run: |
         echo ::set-env name=RELEASE_VERSION::${{ steps.tagName.outputs.tag }}
         echo $RELEASE_VERSION
+
     # Setup gcloud CLI
     - name: CD - GCP Auth
       uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
@@ -84,55 +92,78 @@ jobs:
         service_account_email: ${{ secrets.GOOGLE_SA_EMAIL }}
         service_account_key: ${{ secrets.GOOGLE_SA_KEY }}
         project_id: ${{ env.GCP_PROJECT }}
+
     # Get GKE credentials
     - name: CD - GKE Auth
       run: |-
         gcloud container clusters get-credentials "$GKE_CLUSTER" --zone "$GKE_ZONE"
+
+    # Set GKE secret
     - name: CD - GKE Docker secret
       run: |-
         kubectl create secret docker-registry ${{ env.REGISTRY_PULL_SECRET }} \
           --docker-server=${{ env.GCP_REGISTRY }} --docker-username=_json_key \
           --docker-password="$(cat $GOOGLE_APPLICATION_CREDENTIALS)" \
           --docker-email=${{ secrets.GOOGLE_SA_EMAIL }} || echo "Exists :)"
+    
+    # Install deps
     - name: Helm - Install dependencies
       run: |
         pip3 install --upgrade setuptools pip
         pip3 install -r ./.cicd/requirements.txt
+
     # Update chart
     - name: Helm - Update chart
       run: |
+        # Create startup commands
+        BOOTSTRAP_PARAMS=""
+        SHOULD_EXPOSE_DEFAULT_BITCOIN=false
+        if [ "${{ matrix.bitcoin-version }}" == "bootstrap" ]; then
+          BOOTSTRAP_PARAMS="- -bootstrap"
+          SHOULD_EXPOSE_DEFAULT_BITCOIN=true
+        fi
+
+        NET_PARAMS=""
+        if [ "${{ env.BLOCKCHAIN_NETWORK }}" == "testnet" ]; then
+          NET_PARAMS="- -testnet"
+        fi
+
         # Create update file
         cat << EOF > ./node/k8s/values_updated.yaml
         image:
           registry: ${{ env.GCP_REGISTRY }}
           repository: ${{ env.GCP_PROJECT }}/${{ env.ARTIFACT_NAME }}
-          tag: ${{ env.BITCOIN_TAG }}
+          tag: ${{ matrix.bitcoin-version }}
           pullSecrets: 
             name: ${{ env.REGISTRY_PULL_SECRET }}
 
         command:
         - bitglobd
-        - -testnet
-        - -bootstrap
+        $NET_PARAMS
+        $BOOTSTRAP_PARAMS
 
         service:
-          exposeBitcoin: true
+          exposeBitcoin: $SHOULD_EXPOSE_DEFAULT_BITCOIN
         EOF
 
         # Run update
         python3 ./.cicd/update_chart.py
         cat ./node/k8s/values.yaml
+
     # Lint chart
     - name: Helm - Lint
       run: |
         helm lint ./node/k8s/
+        
     # Upload artifact
     - uses: actions/upload-artifact@v1
       name: Helm - Upload artifact
       with:
-        name: ${{ env.ARTIFACT_NAME }}-${{ env.RELEASE_VERSION }}
+        name: ${{ env.ARTIFACT_NAME }}-${{ env.BLOCKCHAIN_NETWORK }}-${{ matrix.bitcoin-version }}-${{ env.RELEASE_VERSION }}
         path: ./node/k8s/
+
     # Deploy chart
     - name: Helm - Deploy chart
       run: |
-        helm upgrade $ARTIFACT_NAME $CHART_PATH/ --install --wait --timeout 15m0s --atomic --namespace=$ARTIFACT_NAMESPACE --values=$CHART_PATH/values.yaml
+        helm upgrade $ARTIFACT_NAME-${{ env.BLOCKCHAIN_NETWORK }}-${{ matrix.bitcoin-version }} $CHART_PATH/ \
+        --install --wait --timeout 15m0s --atomic --namespace=$ARTIFACT_NAMESPACE --values=$CHART_PATH/values.yaml

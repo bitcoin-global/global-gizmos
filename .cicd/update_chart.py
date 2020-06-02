@@ -2,25 +2,38 @@
 # This file updates the contents of Helm values file for CI.
 # Note: Do not run this script locally!
 # ==========================================================
-import yaml
 import os
+import hiyapyco
+import pprint
+import yaml
 
-# === Helm chart files
-fname = "./node/k8s/values.yaml"
-chart_name = "./node/k8s/Chart.yaml"
-# Open files
-stream, chart_stream = open(fname, 'r'), open(chart_name, 'r')
-data, chart_data = yaml.load(stream, Loader=yaml.FullLoader), yaml.load(chart_stream, Loader=yaml.FullLoader)
+# ==========================================================
+# ============================ Update valus.yaml
+# ==========================================================
+valuesFile = "./node/k8s/values.yaml"
+valuesFileUpdated = "./node/k8s/values_updated.yaml"
+with open(valuesFile) as fp:
+    yaml1 = yaml.load(fp, Loader=yaml.FullLoader)
+with open(valuesFileUpdated) as fp:
+    yaml1_updated = yaml.load(fp, Loader=yaml.FullLoader)
 
-# === Update values.yaml
-data['image']['tag'] = os.getenv("BITCOIN_TAG", "v0.19.1")
+# === Update
+merged_yaml = hiyapyco.load(valuesFile, valuesFileUpdated, method=hiyapyco.METHOD_MERGE)
 
-# === Update Chart.yaml
-chart_data['version'] = os.getenv("RELEASE_VERSION", "v0.1.0")
+# === Save
+with open(valuesFile, 'w') as yaml_file:
+    yaml_file.write(hiyapyco.dump(merged_yaml, default_flow_style=False))
 
-# Save files
-with open(fname, 'w') as yaml_file:
-    yaml_file.write(yaml.dump(data, default_flow_style=False))
+# ==========================================================
+# ============================ Update Chart.yaml
+# ==========================================================
+chartFile = "./node/k8s/Chart.yaml"
+with open(chartFile) as fp:
+    chart_data = yaml.load(fp, Loader=yaml.FullLoader)
 
-with open(chart_name, 'w') as yaml_file:
+# === Update
+chart_data['version'] = os.getenv("RELEASE_VERSION")
+
+# === Save
+with open(chartFile, 'w') as yaml_file:
     yaml_file.write(yaml.dump(chart_data, default_flow_style=False))

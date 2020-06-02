@@ -30,12 +30,14 @@ spec:
             - name: btg-testnet
               containerPort: {{ .Values.service.ports.bitglobal.testnet }}
               protocol: TCP
+          {{- if .Values.service.exposeBitcoin }}
             - name: btc-mainnet
               containerPort: {{ .Values.service.ports.bitcoin.mainnet }}
               protocol: TCP
             - name: btc-testnet
               containerPort: {{ .Values.service.ports.bitcoin.testnet }}
               protocol: TCP
+          {{ end }}
           env:
             - name: BITCOIN_RPC_USER
               valueFrom:
@@ -49,7 +51,7 @@ spec:
                   key: rpcpass
           volumeMounts:
           - mountPath: /bitcoin-global
-            name: {{ .Values.volumeName }}
+            name: bitcoin-global-pv
       {{- if .Values.image.pullSecrets }}
       imagePullSecrets:
       - name: {{ .Values.image.pullSecrets.name | quote }}
@@ -70,3 +72,12 @@ spec:
       volumes:
         {{- toYaml . | nindent 8 }}
     {{- end }}
+  volumeClaimTemplates:
+  - metadata:
+      name: bitcoin-global-pv
+    spec:
+      accessModes: 
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 500Gi

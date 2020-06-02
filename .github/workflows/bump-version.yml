@@ -1,12 +1,9 @@
 name: Tag
 on:
   # ==========================================================
-  # Activate on push
-  push:
-    branches:
-      - master
-    paths-ignore:
-    - '*.md'
+  # Activate on star
+  watch:
+    types: [started]
 jobs:
   # ==========================================================
   # TODO: Reformat logic to use custom tagging based on params

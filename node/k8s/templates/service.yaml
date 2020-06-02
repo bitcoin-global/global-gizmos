@@ -18,6 +18,7 @@ spec:
       targetPort: btg-testnet
       protocol: TCP
       name: btg-testnet
+  {{- if .Values.service.exposeBitcoin }}
     - port: {{ .Values.service.ports.bitcoin.mainnet }}
       targetPort: btc-mainnet
       protocol: TCP
@@ -26,5 +27,6 @@ spec:
       targetPort: btc-testnet
       protocol: TCP
       name: btc-testnet
+  {{ end }}
   selector:
     {{- include "btg-node.selectorLabels" . | nindent 4 }}

@@ -6,29 +6,31 @@ on:
   push:
     tags:
     - '*'
-  watch:
-    types: [started]
 
 # ========================================================
 env:
   # Project shared
-  GCP_PROJECT   : bitcoin-global-playground
-  BITCOIN_TAG   : bootstrap
+  GCP_PROJECT         : bitcoin-global-playground
+  GCP_REGISTRY        : eu.gcr.io
+  ARTIFACT_NAME       : bitglobal-node
+  ARTIFACT_NAMESPACE  : default
+  GKE_CLUSTER         : eu-west3-bitcoin-global
+  GKE_ZONE            : europe-west3-a
+  REGISTRY_PULL_SECRET: docker-pull-secrets
+
+  # Credentials
   GIT_USERNAME  : fhivemind
-  ARTIFACT_NAME : btg-node
-  HELM_APP      : btg-node
-  HELM_NAMESPACE: default
-  GKE_CLUSTER   : eu-west2-bitcoin-global
-  GKE_ZONE      : europe-west2-a
+  # GIT_AUTH_TOKEN
+  # GOOGLE_SA_EMAIL
+  # GOOGLE_SA_KEY
+
+  # === BUILD MATRIX
+  BITCOIN_TAG: bootstrap
+
 
   # Consts
   CHART_PATH: "./node/k8s"
   KUBECONFIG: ./kube/config
-
-  #### Also required:
-  # GOOGLE_SA_EMAIL
-  # GOOGLE_SA_KEY
-  # GIT_AUTH_TOKEN
 
 jobs:
   # ========================================================
@@ -48,7 +50,7 @@ jobs:
         dockerfile: ./node/Dockerfile
         tag       : ${{ env.BITCOIN_TAG }}
         buildArgs : GITHUB_USER=${{ env.GIT_USERNAME }},BITCOIN_VERSION=${{ env.BITCOIN_TAG }},GITHUB_TOKEN=${{ secrets.GIT_AUTH_TOKEN }}
-        registry  : eu.gcr.io
+        registry  : ${{ env.GCP_REGISTRY }}
         username  : _json_key
         password  : ${{ secrets.DOCKER_PASSWORD }}
 
@@ -86,6 +88,12 @@ jobs:
     - name: CD - GKE Auth
       run: |-
         gcloud container clusters get-credentials "$GKE_CLUSTER" --zone "$GKE_ZONE"
+    - name: CD - GKE Docker secret
+      run: |-
+        kubectl create secret docker-registry ${{ env.REGISTRY_PULL_SECRET }} \
+          --docker-server=${{ env.GCP_REGISTRY }} --docker-username=_json_key \
+          --docker-password="$(cat $GOOGLE_APPLICATION_CREDENTIALS)" \
+          --docker-email=${{ secrets.GOOGLE_SA_EMAIL }} || echo "Exists :)"
     - name: Helm - Install dependencies
       run: |
         pip3 install --upgrade setuptools pip
@@ -93,6 +101,25 @@ jobs:
     # Update chart
     - name: Helm - Update chart
       run: |
+        # Create update file
+        cat << EOF > ./node/k8s/values_updated.yaml
+        image:
+          registry: ${{ env.GCP_REGISTRY }}
+          repository: ${{ env.GCP_PROJECT }}/${{ env.ARTIFACT_NAME }}
+          tag: ${{ env.BITCOIN_TAG }}
+          pullSecrets: 
+            name: ${{ env.REGISTRY_PULL_SECRET }}
+
+        command:
+        - bitglobd
+        - -testnet
+        - -bootstrap
+
+        service:
+          exposeBitcoin: true
+        EOF
+
+        # Run update
         python3 ./.cicd/update_chart.py
         cat ./node/k8s/values.yaml
     # Lint chart
@@ -103,9 +130,9 @@ jobs:
     - uses: actions/upload-artifact@v1
       name: Helm - Upload artifact
       with:
-        name: ${{ env.HELM_APP }}-${{ env.RELEASE_VERSION }}
+        name: ${{ env.ARTIFACT_NAME }}-${{ env.RELEASE_VERSION }}
         path: ./node/k8s/
     # Deploy chart
     - name: Helm - Deploy chart
       run: |
-        helm upgrade $HELM_APP $CHART_PATH/ --install --wait --timeout 15m0s --atomic --namespace=$HELM_NAMESPACE --values=$CHART_PATH/values.yaml
+        helm upgrade $ARTIFACT_NAME $CHART_PATH/ --install --wait --timeout 15m0s --atomic --namespace=$ARTIFACT_NAMESPACE --values=$CHART_PATH/values.yaml

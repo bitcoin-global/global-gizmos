@@ -13,10 +13,10 @@ WORKDIR /opt
 COPY . .
 COPY docker-entrypoint.sh /entrypoint.sh
 
-# Required configs (change to override)
+# Required configs
 ARG GITHUB_TOKEN=""
-ARG GITHUB_USER="fhivemind"
-ARG BITCOIN_VERSION="v0.19.2"
+ARG GITHUB_USER=""
+ARG BITCOIN_VERSION="master"
 
 # Install Bitcoin Global
 RUN ./scripts/install-full-node.sh -v $BITCOIN_VERSION -d /bitcoin-global -t /opt

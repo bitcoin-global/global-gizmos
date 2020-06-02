@@ -11,9 +11,9 @@ replicaCount: 1
 
 # Bitcoin Global configs
 image:
-  registry: eu.gcr.io
-  repository: bitcoin-global-playground/btg-node
-  tag: bootstrap
+  registry: 
+  repository: 
+  tag: 
   pullPolicy: Always
   pullSecrets: 
     name: docker-pull-secrets
@@ -29,18 +29,11 @@ rpc:
   secret: rpc-data
   user: username
 
-# ========= Data configuration
-volumeName: bitcoin-global-data
-volumes:
-  - name: bitcoin-global-data
-    gcePersistentDisk:
-      pdName: bitcoin-global-data
-      fsType: ext4
-
 # ========= Services configuration
 service:
   type: LoadBalancer
   externalTrafficPolicy: Local
+  exposeBitcoin: true
   ports:
     bitglobal:
       mainnet: 8222

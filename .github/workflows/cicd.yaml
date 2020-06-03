@@ -14,8 +14,8 @@ env:
   GCP_REGISTRY        : eu.gcr.io
   ARTIFACT_NAME       : bitglobal-node
   ARTIFACT_NAMESPACE  : default
-  GKE_CLUSTER         : eu-west3-bitcoin-global
-  GKE_ZONE            : europe-west3-a
+  GKE_CLUSTER         : eu-west2-bitcoin-global
+  GKE_ZONE            : europe-west2-a
   REGISTRY_PULL_SECRET: docker-pull-secrets
   BLOCKCHAIN_NETWORK  : testnet
 

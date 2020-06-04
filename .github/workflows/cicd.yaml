@@ -18,7 +18,7 @@ env:
   REGISTRY_PULL_SECRET: docker-pull-secrets
   BLOCKCHAIN_NETWORK  : testnet
 
-  GKE_CLUSTER         : eu-west1-bitcoin-global
+  GKE_CLUSTER         : eu-west1-bitcoin
   GKE_ZONE            : europe-west1-b
 
   # Credentials

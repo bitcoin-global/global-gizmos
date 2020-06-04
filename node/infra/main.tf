@@ -62,7 +62,7 @@ resource "google_container_cluster" "eu_bitcoin_cluster" {
   depends_on = [google_service_networking_connection.private_vpc_connection]
   network    = google_compute_network.bitcoin_network.self_link
   node_config {
-    machine_type = "g1-small"
+    machine_type = "n1-standard-1"
     disk_size_gb = "20"
     preemptible  = true
 

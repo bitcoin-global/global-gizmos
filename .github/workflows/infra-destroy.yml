@@ -1,0 +1,76 @@
+name: 'Infrastructure'
+on:
+  # =================================================================
+  # TODO: change this to something more manageable
+  watch:
+    types: []
+
+# =================================================================
+# Initialize environment.
+# Referenced secrets should be configured before running this step.
+# =================================================================
+env:
+  # Project specific
+  TF_VAR_PROJECT    : bitcoin-global-playground
+  TF_VAR_GKE_CLUSTER: eu-west1-bitcoin-global
+  TF_VAR_GKE_ZONE   : europe-west1-b
+
+  # User specific
+  GITHUB_TOKEN: ${{ secrets.GIT_ACTIONS_TOKEN }}
+
+jobs:
+  # =================================================================
+  # Deploy required infrastructure.
+  # =================================================================
+  terraform:
+    name: 'Destroy infra'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+
+      # Auth Google Services
+      - name: 'Infra - GCP Auth'
+        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        with:
+          version: '270.0.0'
+          service_account_email: ${{ secrets.GOOGLE_SA_EMAIL }}
+          service_account_key: ${{ secrets.GOOGLE_SA_KEY }}
+          export_default_credentials: true
+          project_id: ${{ env.TF_VAR_PROJECT }}
+
+      # Validate infrastructure code
+      - name: 'Infra - Format'
+        uses: hashicorp/terraform-github-actions@master
+        with:
+          tf_actions_version: 0.12.24
+          tf_actions_subcommand: 'fmt'
+          tf_actions_working_dir: './node/infra'
+
+      - name: 'Infra - Init'
+        uses: hashicorp/terraform-github-actions@master
+        with:
+          tf_actions_version: 0.12.24
+          tf_actions_subcommand: 'init'
+          tf_actions_working_dir: './node/infra'
+
+      - name: 'Infra - Validate'
+        uses: hashicorp/terraform-github-actions@master
+        with:
+          tf_actions_version: 0.12.24
+          tf_actions_subcommand: 'validate'
+          tf_actions_working_dir: './node/infra'
+
+      # Destroy infrastructure via Terraform
+      - name: 'Infra - Plan'
+        uses: hashicorp/terraform-github-actions@master
+        with:
+          tf_actions_version: 0.12.24
+          tf_actions_subcommand: 'plan'
+          tf_actions_working_dir: './node/infra'
+  
+      - name: 'Infra - Apply'
+        uses: hashicorp/terraform-github-actions@master
+        with:
+          tf_actions_version: 0.12.24
+          tf_actions_subcommand: 'destroy'
+          tf_actions_working_dir: './node/infra'

@@ -12,12 +12,14 @@ env:
   # Project shared
   GCP_PROJECT         : bitcoin-global-playground
   GCP_REGISTRY        : eu.gcr.io
+
   ARTIFACT_NAME       : bitglobal-node
   ARTIFACT_NAMESPACE  : default
-  GKE_CLUSTER         : eu-west2-bitcoin-global
-  GKE_ZONE            : europe-west2-a
   REGISTRY_PULL_SECRET: docker-pull-secrets
   BLOCKCHAIN_NETWORK  : testnet
+
+  GKE_CLUSTER         : eu-west1-bitcoin-global
+  GKE_ZONE            : europe-west1-b
 
   # Credentials
   GIT_USERNAME: fhivemind
@@ -26,7 +28,7 @@ env:
   # GOOGLE_SA_KEY
 
   # Consts
-  CHART_PATH: "./node/k8s"
+  CHART_PATH: "./node/chart"
   KUBECONFIG: ./kube/config
 
 jobs:
@@ -43,7 +45,7 @@ jobs:
     steps:
     - uses: actions/checkout@master
   
-    - name: Build artifacts [${{ matrix.bitcoin-version }}]
+    - name: Build artifacts
       uses: mr-smithers-excellent/docker-build-push@v3.3
       with:
         image     : ${{ env.GCP_PROJECT }}/${{ env.ARTIFACT_NAME }}
@@ -59,7 +61,7 @@ jobs:
   # ============= CD WORKFLOW
   # ========================================================
   cd:
-    name: Deploy artifacts [${{ matrix.bitcoin-version }}]
+    name: 'Deploy artifacts'
     needs: ci
     runs-on: ubuntu-latest
     strategy:
@@ -129,7 +131,7 @@ jobs:
         fi
 
         # Create update file
-        cat << EOF > ./node/k8s/values_updated.yaml
+        cat << EOF > ./node/chart/values_updated.yaml
         image:
           registry: ${{ env.GCP_REGISTRY }}
           repository: ${{ env.GCP_PROJECT }}/${{ env.ARTIFACT_NAME }}
@@ -148,19 +150,19 @@ jobs:
 
         # Run update
         python3 ./.cicd/update_chart.py
-        cat ./node/k8s/values.yaml
+        cat ./node/chart/values.yaml
 
     # Lint chart
     - name: Helm - Lint
       run: |
-        helm lint ./node/k8s/
+        helm lint ./node/chart/
         
     # Upload artifact
     - uses: actions/upload-artifact@v1
       name: Helm - Upload artifact
       with:
         name: ${{ env.ARTIFACT_NAME }}-${{ env.BLOCKCHAIN_NETWORK }}-${{ matrix.bitcoin-version }}-${{ env.RELEASE_VERSION }}
-        path: ./node/k8s/
+        path: ./node/chart/
 
     # Deploy chart
     - name: Helm - Deploy chart

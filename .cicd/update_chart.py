@@ -10,8 +10,8 @@ import yaml
 # ==========================================================
 # ============================ Update valus.yaml
 # ==========================================================
-valuesFile = "./node/k8s/values.yaml"
-valuesFileUpdated = "./node/k8s/values_updated.yaml"
+valuesFile = "./node/chart/values.yaml"
+valuesFileUpdated = "./node/chart/values_updated.yaml"
 with open(valuesFile) as fp:
     yaml1 = yaml.load(fp, Loader=yaml.FullLoader)
 with open(valuesFileUpdated) as fp:
@@ -27,7 +27,7 @@ with open(valuesFile, 'w') as yaml_file:
 # ==========================================================
 # ============================ Update Chart.yaml
 # ==========================================================
-chartFile = "./node/k8s/Chart.yaml"
+chartFile = "./node/chart/Chart.yaml"
 with open(chartFile) as fp:
     chart_data = yaml.load(fp, Loader=yaml.FullLoader)
 

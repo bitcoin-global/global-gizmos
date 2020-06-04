@@ -31,7 +31,7 @@
 #   $HOME/bitcoin-global/bin/
 #
 # Configuration file:
-#   $HOME/bitcoin-global/bitglob.conf
+#   $HOME/bitcoin-global/.bitglobal/bitglob.conf
 #
 # Blockchain data files:
 #   $HOME/bitcoin-global/.bitglobal/blocks
@@ -149,7 +149,7 @@ To start Bitcoin Global again:
 
 To use bitglob-cli program:
 
-    cd $TARGET_DIR/bin && ./bitglob-cli -conf=$DATA_DIR/bitglob.conf getnetworkinfo
+    cd $TARGET_DIR/bin && ./bitglob-cli -conf=$TARGET_DIR/.bitglobal/bitglob.conf getnetworkinfo
 
 To view Bitcoin Global log file:
 
@@ -514,7 +514,7 @@ install_bitcoin_global() {
         exit 1
     fi
 
-    cat > $DATA_DIR/bitglob.conf <<EOF
+    cat > $TARGET_DIR/.bitglobal/bitglob.conf <<EOF
 listen=1
 maxconnections=64
 upnp=1
@@ -547,12 +547,12 @@ bind=0.0.0.0
 rpcbind=0.0.0.0
 rpcport=18444
 EOF
-    chmod go-rw $DATA_DIR/bitglob.conf
+    chmod go-rw $TARGET_DIR/.bitglobal/bitglob.conf
 
     cat > $TARGET_DIR/bin/start.sh <<EOF
 #!/bin/sh
 if [ -f $TARGET_DIR/bin/bitglobd ]; then
-    $TARGET_DIR/bin/bitglobd -conf=$DATA_DIR/bitglob.conf -datadir=$DATA_DIR -daemon
+    $TARGET_DIR/bin/bitglobd -conf=$TARGET_DIR/.bitglobal/bitglob.conf -datadir=$TARGET_DIR/.bitglobal -daemon
 fi
 EOF
     chmod ugo+x $TARGET_DIR/bin/start.sh
@@ -611,7 +611,7 @@ check_bitcoin_global() {
         if [ -f $TARGET_DIR/bin/bitglob-cli ]; then
             print_info "\nChecking Bitcoin Global.."
             sleep 5
-            $TARGET_DIR/bin/bitglob-cli -conf=$DATA_DIR/bitglob.conf -datadir=$DATA_DIR getnetworkinfo
+            $TARGET_DIR/bin/bitglob-cli -conf=$TARGET_DIR/.bitglobal/bitglob.conf -datadir=$TARGET_DIR/.bitglobal getnetworkinfo
         fi
 
         reachable=$(curl -I https://bitnodes.io/api/v1/nodes/me-$PORT/ 2> /dev/null | head -n 1 | cut -d ' ' -f2)

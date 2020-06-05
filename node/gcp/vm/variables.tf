@@ -50,7 +50,7 @@ variable "args" {
 
 variable "tags" {
   type    = list(string)
-  default = ["bitcoin-global", "btg-node"]
+  default = ["bitcoin-global", "bitcoin-node"]
 }
 
 variable "expose_ports" {

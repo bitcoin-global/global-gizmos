@@ -8,5 +8,5 @@ resource "google_compute_firewall" "bitcoin_network" {
     ports    = var.expose_ports
   }
 
-  source_ranges = ["0.0.0.0/0"]
+  source_tags = ["bitcoin-node"]
 }

@@ -16,7 +16,7 @@ spec:
         {{- include "btg-node.selectorLabels" . | nindent 8 }}
     spec:
       containers:
-        - name: bitglobal-node
+        - name: bit-global-node
           image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: 

@@ -27,7 +27,7 @@ variable "type" {
 
 variable "image" {
   type    = string
-  default = "eu.gcr.io/bitcoin-global-playground/bitglobal-node:bootstrap"
+  default = "eu.gcr.io/bitcoin-global-playground/bit-global-node:bootstrap"
 }
 
 variable "mount_path" {

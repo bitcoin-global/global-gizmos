@@ -19,6 +19,8 @@ RUN git clone https://github.com/fhivemind/vmbuilder && \
 RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 RUN systemctl enable docker
 
+VOLUME ["/var/cache/apt-cacher-ng"]
+EXPOSE 3142
 
 # Entrypoint
 COPY docker-entrypoint.sh /entrypoint.sh

@@ -6,8 +6,8 @@ RUN apt-get update
 RUN apt-get install -y apt-transport-https ca-certificates sudo \
       curl gnupg-agent software-properties-common git python3 \
       apache2 apt-cacher-ng python-vm-builder ruby qemu-utils jq \
-      debootstrap lxc python-cheetah parted kpartx bridge-utils make\
-      ubuntu-archive-keyring firewalld
+      debootstrap lxc python-cheetah parted kpartx bridge-utils make \
+      debian-archive-keyring firewalld
 
 RUN git clone https://github.com/fhivemind/vmbuilder && \
     cd vmbuilder && \ 

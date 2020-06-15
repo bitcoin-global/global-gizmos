@@ -2,8 +2,7 @@
 set -e
 
 # start required tools
-dockerd &> /dev/null &
-/etc/init.d/apt-cacher-ng start &> /dev/null
+sudo service apt-cacher-ng start
 
 # run whatever
 exec "$@"

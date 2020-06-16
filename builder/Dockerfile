@@ -1,17 +1,20 @@
 FROM ubuntu:bionic
 
+# Define environment configuration
 ENV DOCKER_CHANNEL=stable \
     DOCKER_VERSION=19.03.2 \
     DOCKER_COMPOSE_VERSION=1.24.1 \
     DOCKER_SQUASH=0.2.0 \
-    DEBIAN_FRONTEND=noninteractive
+    DEBIAN_FRONTEND=noninteractive \
+    VM_BUILDER_SHA=bbf1921aa090eb924379cca38838d7bb8009a781 \
+    GITIAN_BUILDER_SHA=bd59d446512b76f37670d40e3e2d52f6a574cc23
 
-# Install Docker, Docker Compose, Docker Squash
+
+# Install required packages
 RUN apt-get update && \
     apt-get -y install \
         bash \
         curl \
-     #   device-mapper \
         python-pip \
         python-dev \
         iptables \
@@ -21,9 +24,13 @@ RUN apt-get update && \
         libc-dev \
         libffi-dev \
         libssl-dev \
-        make \
-        git apache2 apt-cacher-ng python-vm-builder \ 
-        ruby qemu-utils qemu-kvm sudo make wget \
+        apache2 \
+        # shared builder tools
+        ruby git make wget curl sudo apt-cacher-ng \
+        # kvm builder
+        python-vm-builder qemu-kvm qemu-utils \
+        # lxc builder
+        lxc debootstrap \
         net-tools \
         iproute2 \
         && \
@@ -33,16 +40,23 @@ RUN apt-get update && \
     curl -fL "https://github.com/jwilder/docker-squash/releases/download/v${DOCKER_SQUASH}/docker-squash-linux-amd64-v${DOCKER_SQUASH}.tar.gz" | tar zx && \
     mv /docker-squash* /bin/ && chmod +x /bin/docker-squash* && \
     rm -rf /var/cache/apk/* && \
-    rm -rf /root/.cache
-
-WORKDIR /shared
-
-RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
-RUN git clone git://github.com/devrandom/gitian-builder.git && \
+    rm -rf /root/.cache && \
+    # Install vmbuilder
     git clone https://github.com/fhivemind/vmbuilder && \
-    cd vmbuilder && \ 
-    chmod u+x setup.py && \
-    ./setup.py install && cd ..
+    git -C ./vmbuilder checkout $VM_BUILDER_SHA && \
+    chmod u+x ./vmbuilder/setup.py && \
+    ./vmbuilder/setup.py install && \
+    # Empty docker service config
+    echo "" > /lib/systemd/system/docker.service && \
+    # Allow nonpw invocation of sudo
+    echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
+# Add gitian builder
+WORKDIR /shared
+RUN git clone https://github.com/devrandom/gitian-builder.git && \
+    git -C ./gitian-builder checkout $GITIAN_BUILDER_SHA
+
+# Make entrypoint
 COPY docker-entrypoint.sh /bin/entrypoint.sh
-ENTRYPOINT ["entrypoint.sh"]
+RUN chmod +x /bin/entrypoint.sh
+ENTRYPOINT ["/bin/bash", "/bin/entrypoint.sh"]

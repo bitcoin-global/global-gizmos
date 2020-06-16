@@ -42,10 +42,9 @@ RUN apt-get update && \
     rm -rf /var/cache/apk/* && \
     rm -rf /root/.cache && \
     # Install vmbuilder
-    git clone https://github.com/fhivemind/vmbuilder && \
-    git -C ./vmbuilder checkout $VM_BUILDER_SHA && \
-    chmod u+x ./vmbuilder/setup.py && \
-    ./vmbuilder/setup.py install && \
+    git clone https://github.com/fhivemind/vmbuilder && cd vmbuilder && \
+    git checkout $VM_BUILDER_SHA && \
+    chmod u+x ./setup.py && ./setup.py install && \
     # Empty docker service config
     echo "" > /lib/systemd/system/docker.service && \
     # Allow nonpw invocation of sudo

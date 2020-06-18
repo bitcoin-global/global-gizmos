@@ -33,6 +33,7 @@ RUN apt-get update && \
         lxc debootstrap \
         net-tools \
         iproute2 \
+        htop \
         && \
     curl -fL "https://download.docker.com/linux/static/${DOCKER_CHANNEL}/x86_64/docker-${DOCKER_VERSION}.tgz" | tar zx && \
     mv /docker/* /bin/ && chmod +x /bin/docker* && \

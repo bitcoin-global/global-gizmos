@@ -15,7 +15,7 @@ DOCKERD_PID_FILE="/tmp/docker.pid"
 DOCKERD_LOG_FILE="/tmp/docker.log"
 
 # Ensure running cacher
-service apt-cacher-ng start > /dev/null 2>&1
+service apt-cacher-ng restart > /dev/null 2>&1
 
 sanitize_cgroups() {
   local cgroup="/sys/fs/cgroup"

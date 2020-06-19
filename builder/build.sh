@@ -45,10 +45,6 @@ function die {
   exit 1
 }
 test -z ${ME} && die 
-if [ "${ME}" = "0" ] ; then
-  echo  "Seriously. let's make this run without root privs"
-   exit 2
-fi
 test -f ${GD_HOST_OSXSDK} || exit 3
 
 NAMESPACE=${LOCAL_USER:-gitianbuild}

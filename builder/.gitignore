@@ -1,0 +1,10 @@
+*.orig
+*.rej
+*.swp
+*~
+clean.sh
+Dockerfile.stage2
+/Stage2
+/Stage1
+/gjhurlbu
+MacOSX*.tar.gz

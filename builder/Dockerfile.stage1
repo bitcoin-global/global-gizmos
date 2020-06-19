@@ -1,8 +1,8 @@
 FROM ubuntu:15.10
 
-
+COPY sources.list-wily /etc/apt/sources.list
 RUN apt-get update \
-     && apt-get install -y python python-pip wget curl git apache2 ruby qemu-utils  apt-cacher-ng lxc  sudo debootstrap net-tools
+     && apt-get install -y python python-pip wget git apache2 ruby qemu-utils apt-cacher-ng lxc sudo debootstrap net-tools ca-certificates curl
 RUN mkdir /gitian \
      && cd /gitian \
      && wget http://archive.ubuntu.com/ubuntu/pool/universe/v/vm-builder/vm-builder_0.12.4+bzr489.orig.tar.gz \
@@ -10,7 +10,7 @@ RUN mkdir /gitian \
      && tar -zxvf vm-builder_0.12.4+bzr489.orig.tar.gz \
      && cd vm-builder-0.12.4+bzr489 \
      && python setup.py install \
-     && cd ..
+     && cd .. \
 
 RUN  cd /gitian ; git clone https://github.com/devrandom/gitian-builder.git 
 
@@ -18,9 +18,12 @@ RUN  cd /gitian \
       && echo "lxc.aa_allow_incomplete = 1" >> gitian-builder/etc/lxc.config.in \
       && echo "lxc.aa_profile = unconfined" >> gitian-builder/etc/lxc.config.in
 
-RUN  adduser  --disabled-password --gecos "gitian" --uid 1001 gitian
+RUN  adduser  --disabled-password --gecos "gitian" --uid LOCAL_UID gitian
 
 
+#COPY gitian_build.sh /gitian
+#COPY make_gitian_vms.sh /gitian
+#COPY config-lxc /gitian/gitian-builder/libexec/config-lxc
 ADD . /
 
 RUN mv /gitian_build.sh /gitian/
@@ -40,4 +43,6 @@ ENV MIRROR_HOST=127.0.0.1
 
 USER gitian
 WORKDIR /gitian
+
+
 ENTRYPOINT ["/gitian/make_gitian_vms.sh"]

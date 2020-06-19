@@ -1,6 +1,6 @@
 FROM ubuntu:15.10
 
-
+COPY sources.list-wily /etc/apt/sources.list
 RUN apt-get update \
      && apt-get install -y python python-pip wget curl git apache2 ruby qemu-utils  apt-cacher-ng lxc  sudo debootstrap net-tools
 RUN mkdir /gitian \

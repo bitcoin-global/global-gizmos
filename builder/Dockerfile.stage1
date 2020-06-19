@@ -10,7 +10,7 @@ RUN mkdir /gitian \
      && tar -zxvf vm-builder_0.12.4+bzr489.orig.tar.gz \
      && cd vm-builder-0.12.4+bzr489 \
      && python setup.py install \
-     && cd .. \
+     && cd ..
 
 RUN  cd /gitian ; git clone https://github.com/devrandom/gitian-builder.git 
 

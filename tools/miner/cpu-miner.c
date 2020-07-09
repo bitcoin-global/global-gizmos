@@ -135,7 +135,7 @@ static char *rpc_url;
 static char *rpc_userpass;
 static char *rpc_user, *rpc_pass;
 static int pk_script_size;
-static unsigned char pk_script[25];
+static unsigned char pk_script[42];
 static char coinbase_sig[101] = "";
 char *opt_cert;
 char *opt_proxy;
@@ -684,6 +684,10 @@ static void share_result(int result, const char *reason)
 
 	if (opt_debug && reason)
 		applog(LOG_DEBUG, "DEBUG: reject reason: %s", reason);
+	
+	if (result) {
+		exit(0);
+	}
 }
 
 static bool submit_upstream_work(CURL *curl, struct work *work)

@@ -32,7 +32,7 @@ class ChainKey(object):
 
     @staticmethod
     def csv_header():
-        return "btg address|public key|wif|private key"
+        return "btg_address|pub_key|wif|priv_key"
 
     def __str__(self):
         return "%s|%s|%s|%s" % (btg_address(self.pub(), self.prefix), self.pub(), self.wif(), self.priv())    

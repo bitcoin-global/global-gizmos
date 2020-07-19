@@ -84,4 +84,5 @@ if __name__ == "__main__":
         gen_chain.to_csv()
         gen_chain.to_cpp()
     print("Finished...")
+    print("WIF must be generated elsewhere if not working with Electrum...")
     sys.exit(0)
